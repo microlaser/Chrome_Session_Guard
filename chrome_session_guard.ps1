@@ -207,7 +207,7 @@ function Test-ChromeHandles {
         if ($line -match '^\s*(\S+)\s+pid:\s*(\d+)') {
             $accessorName = $Matches[1]
             $accessorPid  = $Matches[2]
-            if ($accessorName -notin ($TRUSTED_PARENTS | ForEach-Object { "$_.exe" }) -and
+            if ($accessorName -notin ($TRUSTED_PARENTS | ForEach-Object { "$($_).exe" }) -and
                 $accessorName -ne "chrome.exe") {
                 New-Alert "CHROME_HANDLE_ACCESS" `
                     "Process '$accessorName' (PID $accessorPid) holds a handle to chrome.exe. " +
@@ -273,17 +273,17 @@ function Test-ChromeProfileAccess {
 # Remediation: kill suspicious process (unless -AlertOnly)
 # ---------------------------------------------------------------------------
 function Invoke-Remediation {
-    param([int]$Pid, [string]$Reason)
+    param([int]$TargetPid, [string]$Reason)
     if ($AlertOnly) {
-        Write-Alert "INFO" "AlertOnly mode — NOT killing PID $Pid ($Reason)"
+        Write-Alert "INFO" "AlertOnly mode — NOT killing PID $TargetPid ($Reason)"
         return
     }
-    Write-Alert "WARNING" "Attempting to terminate suspicious PID $Pid ($Reason)"
+    Write-Alert "WARNING" "Attempting to terminate suspicious PID $TargetPid ($Reason)"
     try {
-        Stop-Process -Id $Pid -Force -ErrorAction Stop
-        Write-Alert "INFO" "PID $Pid terminated."
+        Stop-Process -Id $TargetPid -Force -ErrorAction Stop
+        Write-Alert "INFO" "PID $TargetPid terminated."
     } catch {
-        Write-Alert "WARNING" "Could not terminate PID $Pid: $_"
+        Write-Alert "WARNING" "Could not terminate PID $TargetPid - $($_.Exception.Message)"
     }
 }
 
